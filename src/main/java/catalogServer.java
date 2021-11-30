@@ -12,6 +12,7 @@ public class catalogServer {
     public static void main(String[] args) {
         BasicConfigurator.configure();
 
+        //The books are created as JSONObjects
 
         JSONObject book1 = new JSONObject();
         
@@ -50,13 +51,16 @@ public class catalogServer {
         book4.put("price", "40");
         book4.put("quantity", "4");
         
-       
+       //Then the books are stored within a JSONArray
+
         JSONArray booksList = new JSONArray();
         
         booksList.put(book1);
         booksList.put(book2);
         booksList.put(book3);
         booksList.put(book4);
+
+        //The JSONArray then stored in a file of type json which serves as our database
 
         try (FileWriter file = new FileWriter("books.json")) {
 
@@ -67,8 +71,11 @@ public class catalogServer {
             e.printStackTrace();
         }
 
+       //Here the catalog server receives the search request from the Front-end-server 
 
         get("/search/:value", (request, response) -> {
+
+             //the value (book title) in the request url is taken and stored then the booklist is traversed searching for the requested books with the given topic , once the book/s is/are found we send their titles and ID back 
 
             String value = request.params(":value");
             JSONArray temp =new JSONArray();
@@ -84,8 +91,13 @@ public class catalogServer {
 
         });
         
-        
+         //Here the catalog server receives the info request from the Front-end-server 
+
+
         get("/info/:value", (request, response) -> {
+
+             //the value (the ID -item number-) in the request url is taken and stored then the booklist is traversed searching for the requested book with the given ID , once the book is found we send the book's info (title,quantity,price) back
+
 
             String value = request.params(":value");
             JSONArray temp =new JSONArray();
@@ -102,15 +114,23 @@ public class catalogServer {
 
         });
         
-        
+          //Here the catalog server receives the purchase request from the order server 
+
         get("/purchase/:value", (request, response) -> {
+ 
+                //The value in the request (book ID) gets compared to the existend books in the JSON file             
 
             String value = request.params(":value");
             for (int i = 0; i < booksList.length(); i++)
                 if (booksList.getJSONObject(i).get("id").equals(value)) {
-               
+                        
+                           //if the book is found the quantity of the book is checked                         
+ 
                 	int quantity = Integer.parseInt((String) booksList.getJSONObject(i).get("quantity"));
                 	
+                           //if the quantity > 0 it means that the book is in stock and the purchase will be successfull otherwise it is out of stock hence the book is not available 
+                           // depending on that check a response then is returned to the order server which will then forward the response to the front-end-server for their purchase status
+
                 	if(quantity > 0) {
                 		
                 		booksList.getJSONObject(i).remove("quantity");
